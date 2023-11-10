@@ -221,6 +221,7 @@ export class CloudFrontControlPlaneStack extends Stack {
     });
 
     const oidcInfo = this.oidcInfo(createCognitoUserPool ? controlPlane.controlPlaneUrl : undefined);
+    /*
     const authorizer = this.createAuthorizer(oidcInfo);
     const pluginPrefix = 'plugins/';
     const clickStreamApi = this.createBackendApi(authorizer, oidcInfo, pluginPrefix,
@@ -229,6 +230,7 @@ export class CloudFrontControlPlaneStack extends Stack {
     if (!clickStreamApi.lambdaRestApi) {
       throw new Error('Backend api create error.');
     }
+    */
 
     let behaviorOptions: AddBehaviorOptions = {};
     if (!props?.targetToCNRegions) {
@@ -245,6 +247,8 @@ export class CloudFrontControlPlaneStack extends Stack {
         }),
       };
     }
+
+    /*
     controlPlane.addHttpOrigin(
       `/${clickStreamApi.lambdaRestApi.deploymentStage.stageName}/*`,
       Fn.select(2, Fn.split('/', clickStreamApi.lambdaRestApi.url)),
@@ -254,6 +258,7 @@ export class CloudFrontControlPlaneStack extends Stack {
       },
       behaviorOptions,
     );
+    */
 
     // upload config to S3
     const key = SOLUTION_CONFIG_PATH.substring(1); //remove slash
@@ -264,7 +269,7 @@ export class CloudFrontControlPlaneStack extends Stack {
       solutionVersion: process.env.BUILD_VERSION || 'v1',
       controlPlaneMode: 'CLOUDFRONT',
       solutionBucket: solutionBucket.bucket.bucketName,
-      solutionPluginPrefix: pluginPrefix,
+      solutionPluginPrefix: '',
       solutionRegion: Aws.REGION,
       oidcLogoutUrl: oidcInfo.oidcLogoutUrl,
     });
@@ -352,6 +357,7 @@ export class CloudFrontControlPlaneStack extends Stack {
     };
   }
 
+  /*
   private createAuthorizer(oidcInfo: OIDCInfo): TokenAuthorizer {
     const authorizerTable = new aws_dynamodb.Table(this, 'AuthorizerCache', {
       partitionKey: {
@@ -372,7 +378,7 @@ export class CloudFrontControlPlaneStack extends Stack {
       environment: {
         ISSUER: oidcInfo.issuer,
         AUTHORIZER_TABLE: authorizerTable.tableName,
-        ... POWERTOOLS_ENVS,
+        ...POWERTOOLS_ENVS,
       },
       timeout: Duration.seconds(15),
       memorySize: 512,
@@ -409,6 +415,7 @@ export class CloudFrontControlPlaneStack extends Stack {
 
     return clickStreamApi;
   }
+  */
 
   private addToParamGroups(label: string, ...param: string[]) {
     this.paramGroups.push({
@@ -459,7 +466,7 @@ function addCfnNag(stack: Stack) {
         {
           id: 'W76',
           reason:
-          'This policy needs to be able to call other AWS service by design',
+            'This policy needs to be able to call other AWS service by design',
         },
       ],
     },
@@ -471,12 +478,12 @@ function addCfnNag(stack: Stack) {
         {
           id: 'W89',
           reason:
-          'Lambda function is only used as cloudformation custom resources or per product design, no need to be deployed in VPC',
+            'Lambda function is only used as cloudformation custom resources or per product design, no need to be deployed in VPC',
         },
         {
           id: 'W92',
           reason:
-          'Lambda function is only used as cloudformation custom resources or per product design, no need to set ReservedConcurrentExecutions',
+            'Lambda function is only used as cloudformation custom resources or per product design, no need to set ReservedConcurrentExecutions',
         },
       ],
     },

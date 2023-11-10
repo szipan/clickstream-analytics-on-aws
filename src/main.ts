@@ -149,12 +149,12 @@ stackSuppressions([
   {
     id: 'AwsSolutions-IAM4',
     reason:
-        'LogRetention lambda role which are created by CDK uses AWSLambdaBasicExecutionRole',
+      'LogRetention lambda role which are created by CDK uses AWSLambdaBasicExecutionRole',
   },
   {
     id: 'AwsSolutions-IAM5',
     reason:
-        'LogRetention lambda policy which are created by CDK contains wildcard permissions',
+      'LogRetention lambda policy which are created by CDK contains wildcard permissions',
   },
   {
     id: 'AwsSolutions-AS3',
@@ -188,7 +188,7 @@ stackSuppressions([
     id: 'AwsSolutions-L1',
     // The non-container Lambda function is not configured to use the latest runtime version
     reason:
-        'The lambda is created by CDK, CustomResource framework-onEvent, the runtime version will be upgraded by CDK',
+      'The lambda is created by CDK, CustomResource framework-onEvent, the runtime version will be upgraded by CDK',
   },
 ]);
 
@@ -282,5 +282,5 @@ class NodejsFunctionSanityAspect implements IAspect {
 Aspects.of(app).add(new NodejsFunctionSanityAspect());
 
 function synthesizer() {
-  return process.env.USE_BSS ? new BootstraplessStackSynthesizer(): undefined;
+  return process.env.USE_BSS ? new BootstraplessStackSynthesizer() : undefined;
 }
