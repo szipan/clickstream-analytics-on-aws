@@ -12,46 +12,33 @@
  */
 
 import { join } from 'path';
-import { Aspects, Aws, CfnOutput, CfnResource, DockerImage, Duration, Fn, IAspect, RemovalPolicy, Stack, StackProps, aws_dynamodb } from 'aws-cdk-lib';
-import { IAuthorizer, TokenAuthorizer } from 'aws-cdk-lib/aws-apigateway';
+import { Aspects, Aws, CfnOutput, CfnResource, DockerImage, Duration, Fn, IAspect, Stack, StackProps } from 'aws-cdk-lib';
 import { DnsValidatedCertificate } from 'aws-cdk-lib/aws-certificatemanager';
 import {
   CfnDistribution,
   FunctionCode,
   FunctionEventType,
-  OriginProtocolPolicy,
-  OriginRequestCookieBehavior,
-  OriginRequestPolicy,
-  OriginRequestQueryStringBehavior,
   Function,
   ResponseHeadersPolicy,
   HeadersFrameOption,
   HeadersReferrerPolicy,
 } from 'aws-cdk-lib/aws-cloudfront';
-import { AddBehaviorOptions } from 'aws-cdk-lib/aws-cloudfront/lib/distribution';
 import { FunctionAssociation } from 'aws-cdk-lib/aws-cloudfront/lib/function';
-import { TableEncryption } from 'aws-cdk-lib/aws-dynamodb';
-import { Runtime } from 'aws-cdk-lib/aws-lambda';
-import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { HostedZone } from 'aws-cdk-lib/aws-route53';
-import { IBucket } from 'aws-cdk-lib/aws-s3';
 import { Source } from 'aws-cdk-lib/aws-s3-deployment';
 import { NagSuppressions } from 'cdk-nag';
 import { Construct, IConstruct } from 'constructs';
-import { addCfnNagForCustomResourceProvider, addCfnNagForLogRetention, addCfnNagSuppressRules, addCfnNagToStack, rulesToSuppressForLambdaVPCAndReservedConcurrentExecutions } from './common/cfn-nag';
+import { addCfnNagForCustomResourceProvider, addCfnNagForLogRetention, addCfnNagToStack } from './common/cfn-nag';
 import { OUTPUT_CONTROL_PLANE_BUCKET, OUTPUT_CONTROL_PLANE_URL } from './common/constant';
 import { Parameters } from './common/parameters';
-import { POWERTOOLS_ENVS } from './common/powertools';
 import { SolutionBucket } from './common/solution-bucket';
 import { SolutionInfo } from './common/solution-info';
 import { getShortIdOfStack } from './common/stack';
-import { ClickStreamApiConstruct } from './control-plane/backend/click-stream-api';
 import { CloudFrontS3Portal, CNCloudFrontS3PortalProps, DomainProps } from './control-plane/cloudfront-s3-portal';
 import { Constant } from './control-plane/private/constant';
 import { suppressWarningsForCloudFrontS3Portal as suppressWarningsForCloudFrontS3Portal } from './control-plane/private/nag';
 import { SolutionCognito } from './control-plane/private/solution-cognito';
 import { generateSolutionConfig, SOLUTION_CONFIG_PATH } from './control-plane/private/solution-config';
-import { SolutionNodejsFunction } from './private/function';
 
 export interface CloudFrontControlPlaneStackProps extends StackProps {
   /**
@@ -232,20 +219,7 @@ export class CloudFrontControlPlaneStack extends Stack {
     }
     */
 
-    let behaviorOptions: AddBehaviorOptions = {};
     if (!props?.targetToCNRegions) {
-      behaviorOptions = {
-        originRequestPolicy: new OriginRequestPolicy(this, 'ApiGatewayOriginRequestPolicy', {
-          comment: 'Policy to forward all parameters in viewer requests except for the Host header',
-          originRequestPolicyName: `ApiGatewayOriginRequestPolicy-${getShortIdOfStack(this)}`,
-          cookieBehavior: OriginRequestCookieBehavior.all(),
-          headerBehavior: {
-            behavior: 'allExcept',
-            headers: ['host'],
-          },
-          queryStringBehavior: OriginRequestQueryStringBehavior.all(),
-        }),
-      };
     }
 
     /*
