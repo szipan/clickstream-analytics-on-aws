@@ -16,14 +16,14 @@ import {
 } from 'aws-cdk-lib';
 import { Capture, Match, Template } from 'aws-cdk-lib/assertions';
 import { findResourcesName } from './test-utils';
-import { CloudFrontControlPlaneStack } from '../../src/cloudfront-control-plane-stack';
+import { CloudFrontFrontendAppStack } from '../../src/cloudfront-frontend-app-stack';
 import { OUTPUT_CONTROL_PLANE_URL, OUTPUT_CONTROL_PLANE_BUCKET } from '../../src/common/constant';
 import { CFN_FN } from '../constants';
 
 describe('CloudFrontS3PortalStack', () => {
 
   const commonApp = new App();
-  const commonPortalStack = new CloudFrontControlPlaneStack(commonApp, 'CloudFrontS3PortalStack');
+  const commonPortalStack = new CloudFrontFrontendAppStack(commonApp, 'CloudFrontS3PortalStack');
   const commonTemplate = Template.fromStack(commonPortalStack);
 
   test('Global region', () => {
@@ -276,7 +276,7 @@ describe('CloudFrontS3PortalStack', () => {
     );
   });
 
-  test('Lambda has POWERTOOLS settings', ()=> {
+  test('Lambda has POWERTOOLS settings', () => {
     commonTemplate.hasResourceProperties('AWS::Lambda::Function', {
       Environment: {
         Variables: {
@@ -417,7 +417,7 @@ describe('CloudFrontS3PortalStack', () => {
     const app = new App();
 
     //WHEN
-    const portalStack = new CloudFrontControlPlaneStack(app, 'CloudFrontS3PortalStack', {
+    const portalStack = new CloudFrontFrontendAppStack(app, 'CloudFrontS3PortalStack', {
       useCustomDomainName: true,
     });
 
@@ -489,7 +489,7 @@ describe('CloudFrontS3PortalStack', () => {
     const app = new App();
 
     //WHEN
-    const portalStack = new CloudFrontControlPlaneStack(app, 'CloudFrontS3PortalStack', {
+    const portalStack = new CloudFrontFrontendAppStack(app, 'CloudFrontS3PortalStack', {
       targetToCNRegions: true,
     });
 
@@ -614,7 +614,7 @@ describe('CloudFrontS3PortalStack', () => {
     const app = new App();
 
     //WHEN
-    const portalStack = new CloudFrontControlPlaneStack(app, 'CloudFrontS3PortalStack', {
+    const portalStack = new CloudFrontFrontendAppStack(app, 'CloudFrontS3PortalStack', {
       useExistingOIDCProvider: true,
     });
     const template = Template.fromStack(portalStack);
@@ -729,7 +729,7 @@ describe('CloudFrontS3PortalStack', () => {
     const app = new App();
 
     //WHEN
-    const portalStack = new CloudFrontControlPlaneStack(app, 'CloudFrontS3PortalStack', {
+    const portalStack = new CloudFrontFrontendAppStack(app, 'CloudFrontS3PortalStack', {
       targetToCNRegions: true,
     });
 
@@ -760,7 +760,7 @@ describe('CloudFrontS3PortalStack', () => {
     const app = new App();
 
     //WHEN
-    const portalStack = new CloudFrontControlPlaneStack(app, 'CloudFrontS3PortalStack', {
+    const portalStack = new CloudFrontFrontendAppStack(app, 'CloudFrontS3PortalStack', {
       targetToCNRegions: true,
     });
 
@@ -785,7 +785,7 @@ describe('CloudFrontS3PortalStack', () => {
     const app = new App();
 
     //WHEN
-    const portalStack = new CloudFrontControlPlaneStack(app, 'CloudFrontS3PortalStack', {
+    const portalStack = new CloudFrontFrontendAppStack(app, 'CloudFrontS3PortalStack', {
       targetToCNRegions: true,
     });
 
@@ -854,7 +854,7 @@ describe('CloudFrontS3PortalStack', () => {
     const app = new App();
 
     //WHEN
-    const portalStack = new CloudFrontControlPlaneStack(app, 'CloudFrontS3PortalStack', {
+    const portalStack = new CloudFrontFrontendAppStack(app, 'CloudFrontS3PortalStack', {
       targetToCNRegions: false,
     });
     const template = Template.fromStack(portalStack);
@@ -960,7 +960,7 @@ describe('CloudFrontS3PortalStack', () => {
     const app = new App();
 
     //WHEN
-    const portalStack = new CloudFrontControlPlaneStack(app, 'CloudFrontS3PortalStack', {
+    const portalStack = new CloudFrontFrontendAppStack(app, 'CloudFrontS3PortalStack', {
       targetToCNRegions: false,
     });
     const template = Template.fromStack(portalStack);
@@ -986,7 +986,7 @@ describe('CloudFrontS3PortalStack', () => {
         },
       },
     }
-    , 1);
+      , 1);
   });
 
   test('Should has Rules CognitoUnsupportedRegionRule', () => {
@@ -1016,7 +1016,7 @@ describe('CloudFrontS3PortalStack', () => {
     let paramCount = 0;
     for (const element of rule.Assertions[0].Assert['Fn::Or']) {
       paramList.forEach(p => {
-        for (const e of element['Fn::Or'] ) {
+        for (const e of element['Fn::Or']) {
           if (p === e[CFN_FN.EQUALS][1]) {
             paramCount++;
           }

@@ -14,7 +14,7 @@
 import { App, Stack } from 'aws-cdk-lib';
 import { BootstraplessStackSynthesizer } from 'cdk-bootstrapless-synthesizer';
 import { NagPackSuppression, NagSuppressions } from 'cdk-nag';
-import { CloudFrontControlPlaneStack } from './cloudfront-control-plane-stack';
+import { CloudFrontFrontendAppStack } from './cloudfront-frontend-app-stack';
 
 const app = new App();
 
@@ -32,7 +32,7 @@ const commonSuppresionRulesForCloudFrontS3Pattern = [
 ];
 
 stackSuppressions([
-  new CloudFrontControlPlaneStack(app, 'cloudfront-s3-control-plane-stack-cn', {
+  new CloudFrontFrontendAppStack(app, 'cloudfront-s3-frontend-app-stack-cn', {
     targetToCNRegions: true,
     useCustomDomainName: true,
     synthesizer: synthesizer(),
@@ -49,21 +49,21 @@ const commonSuppresionRulesForCloudFrontS3PatternInGloabl = [
 ];
 
 stackSuppressions([
-  new CloudFrontControlPlaneStack(app, 'cloudfront-s3-control-plane-stack-global', {
+  new CloudFrontFrontendAppStack(app, 'cloudfront-s3-frontend-app-stack-global', {
     synthesizer: synthesizer(),
   }),
-  new CloudFrontControlPlaneStack(app, 'cloudfront-s3-control-plane-stack-global-oidc', {
+  new CloudFrontFrontendAppStack(app, 'cloudfront-s3-frontend-app-stack-global-oidc', {
     useExistingOIDCProvider: true,
     synthesizer: synthesizer(),
   }),
 ], commonSuppresionRulesForCloudFrontS3PatternInGloabl);
 
 stackSuppressions([
-  new CloudFrontControlPlaneStack(app, 'cloudfront-s3-control-plane-stack-global-customdomain', {
+  new CloudFrontFrontendAppStack(app, 'cloudfront-s3-frontend-app-stack-global-customdomain', {
     useCustomDomainName: true,
     synthesizer: synthesizer(),
   }),
-  new CloudFrontControlPlaneStack(app, 'cloudfront-s3-control-plane-stack-global-customdomain-oidc', {
+  new CloudFrontFrontendAppStack(app, 'cloudfront-s3-frontend-app-stack-global-customdomain-oidc', {
     useCustomDomainName: true,
     useExistingOIDCProvider: true,
     synthesizer: synthesizer(),

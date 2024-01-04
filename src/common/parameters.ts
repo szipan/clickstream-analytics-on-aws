@@ -41,7 +41,6 @@ import {
   S3_BUCKET_NAME_PATTERN,
   PROJECT_ID_PATTERN,
   APP_ID_PATTERN,
-  EMAIL_PATTERN,
   S3_PREFIX_PATTERN,
 } from './constant';
 
@@ -84,7 +83,7 @@ export interface DomainParameters {
 
 export class Parameters {
 
-  public static createHostedZoneIdParameter(scope: Construct, id?: string) : CfnParameter {
+  public static createHostedZoneIdParameter(scope: Construct, id?: string): CfnParameter {
     return new CfnParameter(scope, id ?? 'HostedZoneId', {
       description: 'The hosted zone ID in Route 53.',
       type: 'AWS::Route53::HostedZone::Id',
@@ -93,7 +92,7 @@ export class Parameters {
     });
   }
 
-  public static createHostedZoneNameParameter(scope: Construct, id?: string) : CfnParameter {
+  public static createHostedZoneNameParameter(scope: Construct, id?: string): CfnParameter {
     return new CfnParameter(scope, id ?? 'HostedZoneName', {
       description: 'The hosted zone name in Route 53',
       type: 'String',
@@ -102,7 +101,7 @@ export class Parameters {
     });
   }
 
-  public static createDomainNameParameter(scope: Construct, id?: string) : CfnParameter {
+  public static createDomainNameParameter(scope: Construct, id?: string): CfnParameter {
     return new CfnParameter(scope, id ?? 'DomainName', {
       description: 'The custom domain name.',
       type: 'String',
@@ -111,7 +110,7 @@ export class Parameters {
     });
   }
 
-  public static createIAMCertificateIdParameter(scope: Construct, id?: string) : CfnParameter {
+  public static createIAMCertificateIdParameter(scope: Construct, id?: string): CfnParameter {
     return new CfnParameter(scope, id ?? 'IAMCertificateId', {
       description: 'The IAM certificate id.',
       type: 'String',
@@ -120,7 +119,7 @@ export class Parameters {
     });
   }
 
-  public static createRecordNameParameter(scope: Construct, id?: string) : CfnParameter {
+  public static createRecordNameParameter(scope: Construct, id?: string): CfnParameter {
     return new CfnParameter(scope, id ?? 'RecordName', {
       description: 'The record name of custom domain.',
       type: 'String',
@@ -129,7 +128,7 @@ export class Parameters {
     });
   }
 
-  public static createVpcIdParameter(scope: Construct, id?: string, props: ParameterProps = {}) : CfnParameter {
+  public static createVpcIdParameter(scope: Construct, id?: string, props: ParameterProps = {}): CfnParameter {
     const allowedPattern = props.allowedPattern ?? `^${VPC_ID_PATTERN}$`;
     return new CfnParameter(scope, id ?? 'VpcId', {
       description: 'Select the virtual private cloud (VPC).',
@@ -140,7 +139,7 @@ export class Parameters {
     });
   }
 
-  public static createPublicSubnetParameter(scope: Construct, id?: string, type: SubnetParameterType = SubnetParameterType.List) : CfnParameter {
+  public static createPublicSubnetParameter(scope: Construct, id?: string, type: SubnetParameterType = SubnetParameterType.List): CfnParameter {
 
     if (type === SubnetParameterType.List) {
       return new CfnParameter(scope, id ?? 'PublicSubnets', {
@@ -158,7 +157,7 @@ export class Parameters {
   }
 
   public static createPrivateSubnetParameter(scope: Construct, id?: string,
-    type: SubnetParameterType = SubnetParameterType.List, props: ParameterProps = {}) : CfnParameter {
+    type: SubnetParameterType = SubnetParameterType.List, props: ParameterProps = {}): CfnParameter {
     if (type === SubnetParameterType.List) {
       return new CfnParameter(scope, id ?? 'PrivateSubnets', {
         description: 'Select at least one private subnet in each Availability Zone.',
@@ -177,32 +176,23 @@ export class Parameters {
     }
   }
 
-  public static createCognitoUserEmailParameter(scope: Construct, id?: string) : CfnParameter {
-    return new CfnParameter(scope, id ?? 'Email', {
-      description: 'Email address of admin user ',
-      type: 'String',
-      allowedPattern: `^${EMAIL_PATTERN}$`,
-      constraintDescription: `Email address must match pattern ${EMAIL_PATTERN}`,
-    });
-  }
-
   public static createS3BucketParameter(scope: Construct, id: string,
-    props: {description: string; allowedPattern?: string; default?: string}) : CfnParameter {
+    props: { description: string; allowedPattern?: string; default?: string }): CfnParameter {
     return new CfnParameter(scope, id, {
       type: 'String',
       allowedPattern: `^(${S3_BUCKET_NAME_PATTERN})?$`,
-      ... props,
+      ...props,
     });
   }
 
   public static createS3PrefixParameter(scope: Construct, id: string,
-    props: {description: string; default: string; allowedPattern?: string}) : CfnParameter {
+    props: { description: string; default: string; allowedPattern?: string }): CfnParameter {
     const pattern = props.allowedPattern ?? S3_PREFIX_PATTERN;
     return new CfnParameter(scope, id, {
       type: 'String',
       allowedPattern: pattern,
       constraintDescription: `${id} must match pattern ${pattern}.`,
-      ... props,
+      ...props,
     });
   }
 
@@ -212,7 +202,7 @@ export class Parameters {
     subnetParameterType?: SubnetParameterType,
     paramGroups?: any[],
     paramLabels?: any,
-    customId?: string) : NetworkParameters {
+    customId?: string): NetworkParameters {
     const groups: any[] = paramGroups ?? [];
     const labels: any = paramLabels ?? {};
     const res: any[] = [];
@@ -262,7 +252,7 @@ export class Parameters {
     };
   }
 
-  public static createDomainParameters(scope: Construct, paramGroups?: any[], paramLabels?: any, customId?: string) : DomainParameters {
+  public static createDomainParameters(scope: Construct, paramGroups?: any[], paramLabels?: any, customId?: string): DomainParameters {
 
     const groups: any[] = paramGroups ?? [];
     const labels: any = paramLabels ?? {};
@@ -297,7 +287,7 @@ export class Parameters {
     };
   }
 
-  public static createOIDCParameters(scope: Construct, paramGroups?: any[], paramLabels?: any, id?: string) : OIDCParameters {
+  public static createOIDCParameters(scope: Construct, paramGroups?: any[], paramLabels?: any, id?: string): OIDCParameters {
 
     const groups: any[] = paramGroups ?? [];
     const labels: any = paramLabels ?? {};

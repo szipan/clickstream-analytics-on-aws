@@ -15,27 +15,19 @@
 export const SOLUTION_CONFIG_PATH = '/aws-exports.json';
 
 export interface SolutionConfigProps {
-  readonly issuer: string;
-  readonly clientId: string;
-  readonly redirectUrl: string;
   readonly solutionVersion: string;
   readonly controlPlaneMode: 'ALB' | 'CLOUDFRONT';
   readonly solutionBucket: string;
   readonly solutionPluginPrefix: string;
   readonly solutionRegion: string;
-  readonly oidcLogoutUrl: string;
 }
 
-export function generateSolutionConfig(props: SolutionConfigProps ) {
+export function generateSolutionConfig(props: SolutionConfigProps) {
   return {
-    oidc_provider: props.issuer,
-    oidc_client_id: props.clientId,
-    oidc_redirect_url: props.redirectUrl + '/signin',
     solution_version: props.solutionVersion,
     control_plane_mode: props.controlPlaneMode,
     solution_data_bucket: props.solutionBucket,
     solution_plugin_prefix: props.solutionPluginPrefix,
     solution_region: props.solutionRegion,
-    oidc_logout_url: props.oidcLogoutUrl,
   };
 }

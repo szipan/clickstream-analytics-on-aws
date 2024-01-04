@@ -12,7 +12,7 @@
  */
 
 import { join } from 'path';
-import { Aspects, Aws, CfnOutput, CfnResource, DockerImage, Duration, Fn, IAspect, Stack, StackProps } from 'aws-cdk-lib';
+import { Aspects, Aws, CfnOutput, CfnResource, DockerImage, Fn, IAspect, Stack, StackProps } from 'aws-cdk-lib';
 import { DnsValidatedCertificate } from 'aws-cdk-lib/aws-certificatemanager';
 import {
   CfnDistribution,
@@ -20,8 +20,6 @@ import {
   FunctionEventType,
   Function,
   ResponseHeadersPolicy,
-  HeadersFrameOption,
-  HeadersReferrerPolicy,
 } from 'aws-cdk-lib/aws-cloudfront';
 import { FunctionAssociation } from 'aws-cdk-lib/aws-cloudfront/lib/function';
 import { HostedZone } from 'aws-cdk-lib/aws-route53';
@@ -37,10 +35,9 @@ import { getShortIdOfStack } from './common/stack';
 import { CloudFrontS3Portal, CNCloudFrontS3PortalProps, DomainProps } from './control-plane/cloudfront-s3-portal';
 import { Constant } from './control-plane/private/constant';
 import { suppressWarningsForCloudFrontS3Portal as suppressWarningsForCloudFrontS3Portal } from './control-plane/private/nag';
-import { SolutionCognito } from './control-plane/private/solution-cognito';
 import { generateSolutionConfig, SOLUTION_CONFIG_PATH } from './control-plane/private/solution-config';
 
-export interface CloudFrontControlPlaneStackProps extends StackProps {
+export interface CloudFrontFrontendAppStackProps extends StackProps {
   /**
    * Indicate whether to create stack in CN regions
    *
@@ -59,19 +56,12 @@ export interface CloudFrontControlPlaneStackProps extends StackProps {
   useExistingOIDCProvider?: boolean;
 }
 
-interface OIDCInfo {
-  readonly issuer: string;
-  readonly clientId: string;
-  readonly oidcLogoutUrl: string;
-  readonly adminEmail: string;
-}
-
-export class CloudFrontControlPlaneStack extends Stack {
+export class CloudFrontFrontendAppStack extends Stack {
 
   private paramGroups: any[] = [];
   private paramLabels: any = {};
 
-  constructor(scope: Construct, id: string, props?: CloudFrontControlPlaneStackProps) {
+  constructor(scope: Construct, id: string, props?: CloudFrontFrontendAppStackProps) {
     super(scope, id, props);
 
     this.templateOptions.description = SolutionInfo.DESCRIPTION + '- Control Plane';
@@ -149,35 +139,7 @@ export class CloudFrontControlPlaneStack extends Stack {
       });
     }
 
-    const createCognitoUserPool = !props?.useExistingOIDCProvider && !props?.targetToCNRegions;
     let responseHeadersPolicy: ResponseHeadersPolicy | undefined = undefined;
-    const cspUrl = [
-      `https://cognito-idp.${Aws.REGION}.amazonaws.com`,
-      `*.auth.${Aws.REGION}.amazoncognito.com`,
-      solutionBucket.bucket.bucketDomainName,
-      solutionBucket.bucket.bucketRegionalDomainName,
-    ].join(' ');
-
-    const frameCSPUrl = [
-      `*.quicksight.${Aws.PARTITION}.amazon.com`,
-    ].join(' ');
-
-    if (createCognitoUserPool) {
-      responseHeadersPolicy = new ResponseHeadersPolicy(this, 'response_headers_policy', {
-        responseHeadersPolicyName: `clickstream-response_header-policy-${getShortIdOfStack(this)}`,
-        securityHeadersBehavior: {
-          contentSecurityPolicy: {
-            contentSecurityPolicy: `default-src 'self' data:; upgrade-insecure-requests; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src 'self' ${cspUrl}; frame-src ${frameCSPUrl};`,
-            override: true,
-          },
-          contentTypeOptions: { override: true },
-          frameOptions: { frameOption: HeadersFrameOption.DENY, override: true },
-          referrerPolicy: { referrerPolicy: HeadersReferrerPolicy.NO_REFERRER, override: true },
-          strictTransportSecurity: { accessControlMaxAge: Duration.seconds(600), includeSubdomains: true, override: true },
-          xssProtection: { protection: true, modeBlock: true, override: true },
-        },
-      });
-    }
 
     const buildScript: string = this.node.tryGetContext('BuildScript');
 
@@ -208,23 +170,14 @@ export class CloudFrontControlPlaneStack extends Stack {
       },
     });
 
-    const oidcInfo = this.oidcInfo(createCognitoUserPool ? controlPlane.controlPlaneUrl : undefined);
-
-    if (!props?.targetToCNRegions) {
-    }
-
     // upload config to S3
     const key = SOLUTION_CONFIG_PATH.substring(1); //remove slash
     const awsExports = generateSolutionConfig({
-      issuer: oidcInfo.issuer,
-      clientId: oidcInfo.clientId,
-      redirectUrl: controlPlane.controlPlaneUrl,
       solutionVersion: process.env.BUILD_VERSION || 'v1',
       controlPlaneMode: 'CLOUDFRONT',
       solutionBucket: solutionBucket.bucket.bucketName,
       solutionPluginPrefix: '',
       solutionRegion: Aws.REGION,
-      oidcLogoutUrl: oidcInfo.oidcLogoutUrl,
     });
 
     controlPlane.bucketDeployment.addSource(Source.jsonData(key, awsExports));
@@ -274,41 +227,6 @@ export class CloudFrontControlPlaneStack extends Stack {
 
     // nag
     addCfnNag(this);
-  }
-
-  private oidcInfo(controlPlaneUrl?: string): OIDCInfo {
-    let issuer: string;
-    let clientId: string;
-    let oidcLogoutUrl: string = '';
-    const emailParameter = Parameters.createCognitoUserEmailParameter(this);
-
-    //Create Cognito user pool and client for backend api
-    if (controlPlaneUrl) {
-      this.addToParamLabels('Admin User Email', emailParameter.logicalId);
-      this.addToParamGroups('Authentication Information', emailParameter.logicalId);
-
-      const cognito = new SolutionCognito(this, 'solution-cognito', {
-        email: emailParameter.valueAsString,
-        callbackUrls: [`${controlPlaneUrl}/signin`],
-        logoutUrls: [`${controlPlaneUrl}`],
-      });
-
-      issuer = cognito.oidcProps.issuer;
-      clientId = cognito.oidcProps.appClientId;
-      oidcLogoutUrl = cognito.oidcProps.oidcLogoutUrl;
-
-    } else {
-      const oidcParameters = Parameters.createOIDCParameters(this, this.paramGroups, this.paramLabels);
-      issuer = oidcParameters.oidcProvider.valueAsString;
-      clientId = oidcParameters.oidcClientId.valueAsString;
-    }
-
-    return {
-      issuer,
-      clientId,
-      oidcLogoutUrl,
-      adminEmail: emailParameter.valueAsString,
-    };
   }
 
   private addToParamGroups(label: string, ...param: string[]) {
