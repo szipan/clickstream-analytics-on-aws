@@ -35,7 +35,7 @@ jspm_packages/
 cdk.context.json
 .DS_Store
 docs/site/
-frontend/amplify
+frontend
 test-deploy*
 deployment/global-s3-assets/
 deployment/regional-s3-assets/

@@ -179,6 +179,8 @@ export class CloudFrontControlPlaneStack extends Stack {
       });
     }
 
+    const buildScript: string = this.node.tryGetContext('BuildScript');
+
     const controlPlane = new CloudFrontS3Portal(this, 'cloudfront_control_plane', {
       frontendProps: {
         assetPath: join(__dirname, '..'),
@@ -186,8 +188,7 @@ export class CloudFrontControlPlaneStack extends Stack {
         dockerImage: DockerImage.fromRegistry(Constant.NODE_IMAGE_V18),
         buildCommand: [
           'bash', '-c',
-          'export APP_PATH=/tmp/app && mkdir $APP_PATH && cd ./frontend/ && find -L . -type f -not -path "./build/*" -not -path "./node_modules/*" \
-          -exec cp --parents {} $APP_PATH \\; && cd $APP_PATH && yarn install --loglevel error && yarn run build --loglevel error && cp -r ./build/* /asset-output/',
+          buildScript,
         ],
         environment: {
           GENERATE_SOURCEMAP: process.env.GENERATE_SOURCEMAP ?? 'false',
@@ -208,31 +209,9 @@ export class CloudFrontControlPlaneStack extends Stack {
     });
 
     const oidcInfo = this.oidcInfo(createCognitoUserPool ? controlPlane.controlPlaneUrl : undefined);
-    /*
-    const authorizer = this.createAuthorizer(oidcInfo);
-    const pluginPrefix = 'plugins/';
-    const clickStreamApi = this.createBackendApi(authorizer, oidcInfo, pluginPrefix,
-      solutionBucket.bucket, props?.targetToCNRegions);
-
-    if (!clickStreamApi.lambdaRestApi) {
-      throw new Error('Backend api create error.');
-    }
-    */
 
     if (!props?.targetToCNRegions) {
     }
-
-    /*
-    controlPlane.addHttpOrigin(
-      `/${clickStreamApi.lambdaRestApi.deploymentStage.stageName}/*`,
-      Fn.select(2, Fn.split('/', clickStreamApi.lambdaRestApi.url)),
-      {
-        protocolPolicy: OriginProtocolPolicy.HTTPS_ONLY,
-        originPath: `/${clickStreamApi.lambdaRestApi.deploymentStage.stageName}`,
-      },
-      behaviorOptions,
-    );
-    */
 
     // upload config to S3
     const key = SOLUTION_CONFIG_PATH.substring(1); //remove slash
@@ -302,6 +281,7 @@ export class CloudFrontControlPlaneStack extends Stack {
     let clientId: string;
     let oidcLogoutUrl: string = '';
     const emailParameter = Parameters.createCognitoUserEmailParameter(this);
+
     //Create Cognito user pool and client for backend api
     if (controlPlaneUrl) {
       this.addToParamLabels('Admin User Email', emailParameter.logicalId);
@@ -330,66 +310,6 @@ export class CloudFrontControlPlaneStack extends Stack {
       adminEmail: emailParameter.valueAsString,
     };
   }
-
-  /*
-  private createAuthorizer(oidcInfo: OIDCInfo): TokenAuthorizer {
-    const authorizerTable = new aws_dynamodb.Table(this, 'AuthorizerCache', {
-      partitionKey: {
-        name: 'id',
-        type: aws_dynamodb.AttributeType.STRING,
-      },
-      billingMode: aws_dynamodb.BillingMode.PAY_PER_REQUEST,
-      removalPolicy: RemovalPolicy.DESTROY,
-      pointInTimeRecovery: true,
-      encryption: TableEncryption.AWS_MANAGED,
-      timeToLiveAttribute: 'ttl',
-    });
-
-    const authFunction = new SolutionNodejsFunction(this, 'AuthorizerFunction', {
-      runtime: Runtime.NODEJS_18_X,
-      handler: 'handler',
-      entry: './src/control-plane/auth/index.ts',
-      environment: {
-        ISSUER: oidcInfo.issuer,
-        AUTHORIZER_TABLE: authorizerTable.tableName,
-        ...POWERTOOLS_ENVS,
-      },
-      timeout: Duration.seconds(15),
-      memorySize: 512,
-      logRetention: RetentionDays.TEN_YEARS,
-    });
-    authorizerTable.grantReadWriteData(authFunction);
-    addCfnNagSuppressRules(authFunction.node.defaultChild as CfnResource, [
-      ...rulesToSuppressForLambdaVPCAndReservedConcurrentExecutions('AuthorizerFunction'),
-    ]);
-
-    const authorizer = new TokenAuthorizer(this, 'JWTAuthorizer', {
-      handler: authFunction,
-      validationRegex: '^(Bearer )[a-zA-Z0-9\-_]+?\.[a-zA-Z0-9\-_]+?\.([a-zA-Z0-9\-_]+)$',
-      resultsCacheTtl: Duration.seconds(0),
-    });
-
-    return authorizer;
-  }
-
-  private createBackendApi(authorizer: IAuthorizer, oidcInfo: OIDCInfo, pluginPrefix: string,
-    bucket: IBucket, targetToCNRegions?: boolean): ClickStreamApiConstruct {
-    const clickStreamApi = new ClickStreamApiConstruct(this, 'ClickStreamApi', {
-      fronting: 'cloudfront',
-      apiGateway: {
-        stageName: 'api',
-        authorizer: authorizer,
-      },
-      targetToCNRegions: targetToCNRegions,
-      stackWorkflowS3Bucket: bucket,
-      pluginPrefix: pluginPrefix,
-      healthCheckPath: '/',
-      adminUserEmail: oidcInfo.adminEmail,
-    });
-
-    return clickStreamApi;
-  }
-  */
 
   private addToParamGroups(label: string, ...param: string[]) {
     this.paramGroups.push({
