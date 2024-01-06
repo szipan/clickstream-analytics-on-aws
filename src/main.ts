@@ -52,20 +52,11 @@ stackSuppressions([
   new CloudFrontFrontendAppStack(app, 'cloudfront-s3-frontend-app-stack-global', {
     synthesizer: synthesizer(),
   }),
-  new CloudFrontFrontendAppStack(app, 'cloudfront-s3-frontend-app-stack-global-oidc', {
-    useExistingOIDCProvider: true,
-    synthesizer: synthesizer(),
-  }),
 ], commonSuppresionRulesForCloudFrontS3PatternInGloabl);
 
 stackSuppressions([
   new CloudFrontFrontendAppStack(app, 'cloudfront-s3-frontend-app-stack-global-customdomain', {
     useCustomDomainName: true,
-    synthesizer: synthesizer(),
-  }),
-  new CloudFrontFrontendAppStack(app, 'cloudfront-s3-frontend-app-stack-global-customdomain-oidc', {
-    useCustomDomainName: true,
-    useExistingOIDCProvider: true,
     synthesizer: synthesizer(),
   }),
 ], [

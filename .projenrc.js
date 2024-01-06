@@ -13,7 +13,7 @@
 
 const { awscdk, gitlab, javascript, typescript } = require('projen');
 const version = '1.0.0';
-const cdkVersion = '2.81.0';
+const cdkVersion = '2.83.1';
 const minNodeVersion = '18.17.0';
 
 const cdkAlphaModules = [
