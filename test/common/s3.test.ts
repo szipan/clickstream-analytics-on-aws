@@ -31,12 +31,12 @@ beforeEach(() => {
   s3ClientMock.reset();
 });
 
-test('putStringToS3()', async ()=> {
+test('putStringToS3()', async () => {
   await putStringToS3('test string', testBucketName, testPrefix);
   expect(s3ClientMock).toHaveReceivedCommand(PutObjectCommand);
 });
 
-test('readS3ObjectAsJson()', async ()=> {
+test('readS3ObjectAsJson()', async () => {
   const obj = { test: 'testMe' };
 
   const stream = new Readable();
@@ -56,7 +56,7 @@ test('readS3ObjectAsJson()', async ()=> {
 });
 
 
-test('readS3ObjectAsJson() object not exist', async ()=> {
+test('readS3ObjectAsJson() object not exist', async () => {
   // @ts-ignore
   const err = new NoSuchKey();
 
@@ -66,14 +66,14 @@ test('readS3ObjectAsJson() object not exist', async ()=> {
 });
 
 
-test('readS3ObjectAsJson() error', async ()=> {
+test('readS3ObjectAsJson() error', async () => {
   const err = new Error('error');
   s3ClientMock.on(GetObjectCommand).rejects(err);
 
   let error = false;
   try {
     await readS3ObjectAsJson(testBucketName, `${testPrefix}/test.json`);
-  } catch ( e: any) {
+  } catch (e: any) {
     error = true;
   }
   expect(error).toBeTruthy();
@@ -81,13 +81,13 @@ test('readS3ObjectAsJson() error', async ()=> {
 });
 
 
-test('copyS3Object()', async ()=> {
+test('copyS3Object()', async () => {
   await copyS3Object(`s3://${testBucketName}/${testPrefix}/test-src.txt`, `s3://${testBucketName}/${testPrefix}/test-dest.txt`);
   expect(s3ClientMock).toHaveReceivedCommand(CopyObjectCommand);
 });
 
 
-test('deleteObjectsByPrefix()', async ()=> {
+test('deleteObjectsByPrefix()', async () => {
   s3ClientMock.on(ListObjectsV2Command).resolvesOnce({
     IsTruncated: false,
     Contents: [
@@ -102,7 +102,7 @@ test('deleteObjectsByPrefix()', async ()=> {
 });
 
 
-test('deleteObjectsByPrefix() - NextContinuationToken', async ()=> {
+test('deleteObjectsByPrefix() - NextContinuationToken', async () => {
   s3ClientMock.on(ListObjectsV2Command).resolvesOnce({
     IsTruncated: true,
     Contents: [
@@ -130,7 +130,7 @@ test('deleteObjectsByPrefix() - NextContinuationToken', async ()=> {
 
 });
 
-test('processS3GzipObjectLineByLine()', async ()=> {
+test('processS3GzipObjectLineByLine()', async () => {
   const logText = [
     '23/04/04 02:43:02 INFO ETLRunner: [ETLMetric]source dataset count:1',
     '23/04/04 02:43:07 INFO Transformer: [ETLMetric]transform enter dataset count:123',
